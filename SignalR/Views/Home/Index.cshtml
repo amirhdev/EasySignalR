@@ -1,0 +1,36 @@
+﻿@{
+    ViewData["Title"] = "Home Page";
+    Layout = "_Layout";
+}
+<div class="text-center">
+    <p id="message_container"></p>
+    <button id="send_message_from_back">send message (from back)</button>
+    <button id="send_message_from_front">send message (from front)</button>
+</div>
+@section Scripts
+{
+    <script src="~/lib/microsoft/signalr/dist/browser/signalr.js"></script>
+    <script>
+        //1:
+        var connection = new signalR.HubConnectionBuilder().withUrl("/personhub").build();
+
+        //2:
+        connection.on("ReceivedMessage", (message) => $("#message_container").text(message));
+        connection.on("NewUserAdded", () => $("#message_container").text("new user added"));
+        connection.on("NewPersonAdded", (person) => {
+            alert(`new person add: ${person.firstName} ${person.lastName}`);
+        });
+
+        //3:
+        $('#send_message_from_back').on('click', () => $.ajax('/Home/SendMessage'));
+
+        //4
+        $('#send_message_from_front').on('click', () => connection.invoke("SendMessage", "message from front"));
+
+        //5
+        // connection.start();
+
+        //6
+        connection.start().then(() => connection.invoke("UserConnected"));
+    </script>
+}
